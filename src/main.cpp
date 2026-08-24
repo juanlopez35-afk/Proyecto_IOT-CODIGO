@@ -9,6 +9,7 @@
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 String tarjetaAutorizada = "75 F2 DD 13";
+int intentosFallidos = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -35,16 +36,28 @@ void loop() {
 
       if (tarjetaLeida == tarjetaAutorizada) {
         Serial.println("-> ACCESO CONCEDIDO");
+        intentosFallidos = 0; // Resetea intentos
         digitalWrite(LED_PIN, HIGH);
         digitalWrite(BUZZER_PIN, HIGH);
         delay(1000);
         digitalWrite(LED_PIN, LOW);
         digitalWrite(BUZZER_PIN, LOW);
       } else {
-        Serial.println("-> ACCESO DENEGADO");
+        intentosFallidos++;
+        Serial.print("-> ACCESO DENEGADO (Intento ");
+        Serial.print(intentosFallidos);
+        Serial.println("/3)");
+
         digitalWrite(BUZZER_PIN, HIGH);
         delay(200);
         digitalWrite(BUZZER_PIN, LOW);
+
+        if (intentosFallidos >= 3) {
+          Serial.println("-> SISTEMA BLOQUEADO POR 17 SEGUNDOS");
+          delay(17000); // Tiempo de bloqueo asignado en la ficha
+          intentosFallidos = 0;
+          Serial.println("-> SISTEMA DESBLOQUEADO");
+        }
       }
       rfid.PICC_HaltA();
     }
