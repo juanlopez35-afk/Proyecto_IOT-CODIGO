@@ -1,13 +1,16 @@
-Se requiere un sistema de control de acceso local para validar la presencia de usuarios mediante identificación por radiofrecuencia (RFID). Esta solución puede ser utilizada por administradores de edificios o personal de seguridad para restringir el ingreso a áreas privadas de forma rápida y automatizada.
+# Interpretación de la Asignación
 
-La entrada del sistema es la lectura del código UID enviado por la tarjeta MFRC522 vía SPI. El ESP32 compara este UID contra el valor autorizado (`75 F2 DD 13`). Como salida, si el código coincide, activa el LED y el buzzer por 1 segundo (Acceso Concedido); si no coincide, activa un pitido corto de 200 ms (Acceso Denegado).
+**Contexto y uso del proyecto**
+El proyecto es un sistema básico de control de acceso con tarjeta. Esto lo podría usar una pequeña oficina o un laboratorio para controlar quién entra a una puerta sin necesidad de usar llaves físicas ni gastar en un sistema complejo.
 
-La regla individual exige que la respuesta del sistema sea inmediata al aproximar el tag. El estado seguro reduce el riesgo de accesos no autorizados o lecturas erróneas apagando los actuadores y manteniendo el sensor en espera tras cada ciclo.
+**Entradas, decisiones y salidas**
+* **Entradas:** La tarjeta o llavero RFID que la persona acerca al lector RC522.
+* **Decisión:** El ESP32 recibe el código (UID) de la tarjeta y revisa si es exactamente igual al código permitido (`75 F2 DD 13`).
+* **Salidas:** Si el código es correcto, prende un LED verde y hace sonar un pitido (buzzer) por 1 segundo. Si la tarjeta no es la correcta, no abre.
 
-**Supuestos:**
-1. Se asume que el flujo de usuarios es individual (una tarjeta a la vez).
-2. Se asume que la fuente de alimentación del ESP32 permanece estable.
+**Regla individual y estado seguro**
+La regla principal es que solo una tarjeta específica tiene permiso de entrar. El estado seguro es un bloqueo de 17 segundos que se activa si se intentan usar 3 tarjetas incorrectas seguidas. Esto sirve para evitar que un desconocido intente adivinar la clave probando muchas tarjetas rápido.
 
-**Limitaciones del prototipo:**
-1. El UID está guardado de forma fija en el código (hardcoded), sin base de datos dinámica.
-2. No cuenta con conectividad a la red ni registro de eventos (logs) remotos.
+**Supuestos y limitaciones**
+* **Supuestos:** Asumo que el lector siempre tiene buen voltaje para funcionar y que la tarjeta no está rayada o dañada.
+* **Limitaciones:** El código de la tarjeta permitida está guardado fijo dentro del programa (no se puede cambiar desde una app) y el sistema no guarda un historial de quién intentó entrar.
